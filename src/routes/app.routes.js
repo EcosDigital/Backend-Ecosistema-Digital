@@ -12,6 +12,7 @@ import {
   getTotalProjectsRequest,
   getTotalTaskRequest,
   updateProjectRequest,
+  updateStatusBackTaskRequest,
   updateStatusTaskRequest,
   updateTaskRequest,
 } from "../controllers/controllers.js";
@@ -52,5 +53,7 @@ router.get("/getTask/:id", getTaskRequest)
 router.get("/getTotalTasks/:id_project", getTotalTaskRequest)
 
 router.put("/updateStatusTask/:id", updateStatusTaskRequest)
+
+router.put("/updateStatusBack/:id", updateStatusBackTaskRequest)
 
 export default router;

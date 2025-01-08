@@ -156,8 +156,7 @@ export const getEstadoTareasRequest = async (req, res) => {
 export const createTaskRequest = async (req, res) => {
   try {
     //obtener datos de req body
-    const { titulo, descripcion, id_tipo_tarea } =
-      req.body;
+    const { titulo, descripcion, id_tipo_tarea } = req.body;
     const id_proyecto = req.params.id_project;
     //insertar registro
     await pool.query(
@@ -166,7 +165,7 @@ export const createTaskRequest = async (req, res) => {
         id_proyecto,
         titulo,
         descripcion,
-        parseInt(id_tipo_tarea,10),
+        parseInt(id_tipo_tarea, 10),
         1,
         new Date(),
         new Date(),
@@ -206,7 +205,13 @@ export const updateTaskRequest = async (req, res) => {
 
     await pool.query(
       "update cfg_tareas set titulo_tarea = $1, descripcion = $2, id_tipo_tarea = $3,fecha_modificacion = $4 where id = $5",
-      [titulo, descripcion, parseInt(id_tipo_tarea,10), new Date(), id_registro]
+      [
+        titulo,
+        descripcion,
+        parseInt(id_tipo_tarea, 10),
+        new Date(),
+        id_registro,
+      ]
     );
 
     return res.status(200).json({ mensaje: "Registro actualizado con exito" });
@@ -248,10 +253,12 @@ export const getTaskRequest = async (req, res) => {
 
 export const getTotalTaskRequest = async (req, res) => {
   try {
-
     const id_registro = req.params.id_project;
 
-    const results = await pool.query("select t.id, t.id_proyecto, t.id_estado_tarea, t.titulo_tarea, t.descripcion, tt.nombre as prioridad  from cfg_tareas t join ref_tipo_tareas tt on tt.id = t.id_tipo_tarea where t.id_proyecto = $1 order by t.id", [id_registro]);
+    const results = await pool.query(
+      "select t.id, t.id_proyecto, t.id_estado_tarea, t.titulo_tarea, t.descripcion, tt.nombre as prioridad  from cfg_tareas t join ref_tipo_tareas tt on tt.id = t.id_tipo_tarea where t.id_proyecto = $1 order by t.id",
+      [id_registro]
+    );
     if (results.rows.length > 0) {
       return res.status(200).json(results.rows);
     }
@@ -265,31 +272,76 @@ export const updateStatusTaskRequest = async (req, res) => {
   try {
     const id_registro = req.params.id;
 
-  if (isNaN(id_registro)) {
-    // Responde con un error si el ID no es un numero valido
-    return res
-      .status(400)
-      .json({ error: "El ID proporcionado no es un número válido." });
-  }
+    if (isNaN(id_registro)) {
+      // Responde con un error si el ID no es un numero valido
+      return res
+        .status(400)
+        .json({ error: "El ID proporcionado no es un número válido." });
+    }
 
-  //validar si existe el registro
-  const results = await pool.query('select * from cfg_tareas where id = $1', [id_registro])
-  if (results.rows <= 0) {
-    return res.status(400).json({ mensaje: "No se enconraron resultados!" });
-  }
+    //validar si existe el registro
+    const results = await pool.query("select * from cfg_tareas where id = $1", [
+      id_registro,
+    ]);
+    if (results.rows <= 0) {
+      return res.status(400).json({ mensaje: "No se enconraron resultados!" });
+    }
 
-  const estado_actual = results.rows[0].id_estado_tarea
-  const estado_futuro = 
-    estado_actual === 1 ? 2 :
-    estado_actual === 2 ? 3 :
-    estado_actual === 3 ? 2 :
-    estado_actual;
+    const estado_actual = results.rows[0].id_estado_tarea;
+    const estado_futuro =
+      estado_actual === 1
+        ? 2
+        : estado_actual === 2
+        ? 3
+        : estado_actual === 3
+        ? 2
+        : estado_actual;
 
-  //actualizar registro
-  await pool.query('update cfg_tareas set id_estado_tarea = $1 where id = $2', [estado_futuro, id_registro])
-  return res.status(200).json({ mensaje: "Cambio de estado exitoso!" });
+    //actualizar registro
+    await pool.query(
+      "update cfg_tareas set id_estado_tarea = $1 where id = $2",
+      [estado_futuro, id_registro]
+    );
+    return res.status(200).json({ mensaje: "Cambio de estado exitoso!" });
   } catch (error) {
-    return res.status(500).json('Error de servidor')
+    return res.status(500).json("Error de servidor");
   }
+};
 
-}
+export const updateStatusBackTaskRequest = async (req, res) => {
+  try {
+    const id_registro = req.params.id;
+    if (isNaN(id_registro)) {
+      // Responde con un error si el ID no es un numero valido
+      return res
+        .status(400)
+        .json({ error: "El ID proporcionado no es un número válido." });
+    }
+
+    //validar si existe el registro
+    const results = await pool.query("select * from cfg_tareas where id = $1", [
+      id_registro,
+    ]);
+    if (results.rows <= 0) {
+      return res.status(400).json({ mensaje: "No se enconraron resultados!" });
+    }
+
+    const estado_actual = results.rows[0].id_estado_tarea;
+    const estado_futuro =
+      estado_actual === 2
+        ? 1
+        : estado_actual === 3
+        ? 2
+        : estado_actual;
+
+    //actualizar registro
+    await pool.query(
+      "update cfg_tareas set id_estado_tarea = $1 where id = $2",
+      [estado_futuro, id_registro]
+    );
+    return res.status(200).json({ mensaje: "Cambio de estado exitoso!" });
+
+  } catch (error) {
+    return res.status(500).json("Error de servidor");
+  }
+};
