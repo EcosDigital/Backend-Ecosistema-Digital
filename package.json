@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "dotenv -e .env.development nodemon src/index.js",
-    "start": "node --env-file .env.development src/index.js"
+    "start": "node --env-file .env src/index.js"
   },
   "keywords": [],
   "author": "",
